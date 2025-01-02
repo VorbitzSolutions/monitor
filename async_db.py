@@ -1,14 +1,18 @@
 import psycopg
+from datetime import datetime
 from dbfields import Fields
 
+
 class DbAccess:
-    def __init__(self, log, db_name, db_user,appid,sendmsgid):
+    def __init__(self, log, db_name, db_user, appid, sendmsgid):
         self.get_all_rows_sql = "SELECT * FROM domains"
         self.fetch_row_sql = "SELECT * FROM domains WHERE domain_id = %s"
         self.cheeck_new_or_updated = "SELECT 1 FROM domains WHERE status=1"
         self.set_status = "UPDATE domains SET status = 0 WHERE domain_id = %s"
         self.send_msg = "INSERT INTO messages (source_id,destanation_id, status, msg, created_ts, closed_ts) \
         VALUES (%s,%s,true,%s,now(),now())"
+        self.check_shutdown = "select status from public.shutdown WHERE id=1;"
+        self.shutdown = "UPDATE public.shutdown SET status=1 WHERE id = 1;"
 
         self.log = log
         s = f"dbname={db_name} user={db_user}"
@@ -22,6 +26,30 @@ class DbAccess:
         )
         '''
 
+    async def shut_down(self):
+        end_program = 0
+        try:
+            with self.db_conn.transaction():
+                with self.db_conn.cursor() as cur:
+                    cur.execute(self.check_shutdown)
+                    rows = cur.fetchall()
+                    i = 0
+                    for row in rows: i += row[0]
+                    if i > 0:
+                        cur.execute(self.shutdown)
+                        end_program = True
+                    cur.execute("UPDATE public.shutdown SET status=0 WHERE id=1;")
+        except RuntimeError as r:
+            # Handle the error
+            dt = datetime.now()
+            await self.log.error(f"An error occurred in invalidate_queue: {r} at {dt}")
+        except Exception as x:
+            # Handle the error
+            dt = datetime.now()
+            await self.log.error(f"An error occurred in invalidate_queue: {x} at {dt}")
+        finally:
+            return end_program
+
     # Get a single row
     async def select_single_row(self, id):
         rows = []
@@ -34,10 +62,12 @@ class DbAccess:
                     rows = None
         except RuntimeError as r:
             # Handle the error
-            await self.log.error(f"An error occurred in select_all_tasks: {r}")
+            dt = datetime.now()
+            await self.log.error(f"An error occurred in select_all_tasks: {r} at {dt}")
         except Exception as x:
             # Handle the error
-            await self.log.error(f"An error occurred in select_all_tasks: {x}")
+            dt = datetime.now()
+            await self.log.error(f"An error occurred in select_all_tasks: {x} at {dt}")
         finally:
             return rows
 
@@ -52,10 +82,12 @@ class DbAccess:
                     rows = None
         except RuntimeError as r:
             # Handle the error
-            await self.log.error(f"An error occurred in select_all_tasks: {r}")
+            dt = datetime.now()
+            await self.log.error(f"An error occurred in select_all_tasks: {r} at {dt}")
         except Exception as x:
             # Handle the error
-            await self.log.error(f"An error occurred in select_all_tasks: {x}")
+            dt = datetime.now()
+            await self.log.error(f"An error occurred in select_all_tasks: {x} at {dt}")
         finally:
             return rows
 
@@ -72,12 +104,13 @@ class DbAccess:
 
         except RuntimeError as r:
             # Handle the error
-            await self.log.error(f"An error occurred in invalidate_queue: {r}")
+            dt = datetime.now()
+            await self.log.error(f"An error occurred in invalidate_queue: {r} at {dt}")
         except Exception as x:
             # Handle the error
-            await self.log.error(f"An error occurred in invalidate_queue: {x}")
+            dt = datetime.now()
+            await self.log.error(f"An error occurred in invalidate_queue: {x} at {dt}")
         finally:
-            self.db_conn.commit()
             return invalidate
 
     # Set or reset the status flag
@@ -91,14 +124,16 @@ class DbAccess:
                         id = d[Fields.id.value]
                         status = d[Fields.status.value]
                         if status == 1:
-                            cur.execute(self.set_status,(id,))
+                            cur.execute(self.set_status, (id,))
             ok = True
         except RuntimeError as r:
             # Handle the error
-            await self.log.error(f"An error occurred in change_status: {r}")
+            dt = datetime.now()
+            await self.log.error(f"An error occurred in change_status: {r} at {dt}")
         except Exception as x:
             # Handle the error
-            await self.log.error(f"An error occurred in change_status: {x}")
+            dt = datetime.now()
+            await self.log.error(f"An error occurred in change_status: {x} at {dt}")
         finally:
             self.db_conn.commit()
             return ok
@@ -108,4 +143,3 @@ class DbAccess:
 
     def __del__(self):
         self.close()
-

@@ -1,34 +1,34 @@
 import asyncio
-import aiohttp
 import logging
+import ssl
+from datetime import datetime
+
+import aiohttp
 from aiologger import Logger
 from aiologger.handlers.files import AsyncFileHandler
-import ssl
+
 from async_db import DbAccess
-from monitor import Monitor
 from config import configuration
+from monitor import Monitor
 
 # Database connection details
-RESULT_ERROR = False
-RESULT_OK =True
-#DATABASE_URL = "postgresql://postgres@localhost:5432/liveurl"
+# DATABASE_URL = "postgresql://postgres@localhost:5432/liveurl"
 
 # Get config values
-db_name,db_user,looptime,appid,sendmsgid = configuration()
+db_name, db_user, looptime, appid, sendmsgid = configuration()
 
-log = Logger.with_default_handlers(
-    level=logging.INFO
-)
-
+log = Logger.with_default_handlers(level=logging.INFO)
 file_handler = AsyncFileHandler(filename='app.log', mode='w')
 log.add_handler(file_handler)
 
-db = DbAccess(log,db_name,db_user,appid,sendmsgid)
-dm_monitor = Monitor(log,appid,sendmsgid)
 
 # Main function to run the scraping process
 async def main():
-    await log.info("Starting.")
+    dt = datetime.now()
+    await log.info(f"Starting at {dt}.")
+
+    db = DbAccess(log, db_name, db_user, appid, sendmsgid)
+    dm_monitor = Monitor(log, appid, sendmsgid)
 
     ssl_context = ssl.create_default_context()
     ssl_context.check_hostname = False
@@ -53,25 +53,34 @@ async def main():
                     await db.change_status(domains_list)
                     load_data = False
 
-#            rows = await db.get_all_rows_sql
-
             async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=ssl_context)) as session:
                 tasks = [dm_monitor.scrape_url(session, row) for row in domains_list]
                 await asyncio.gather(*tasks)
 
         except RuntimeError as r:
             # Handle the error
-            await log.error(f"An error occurred in run(): {r}")
+            dt = datetime.now()
+            await log.error(f"An error occurred in run(): {r} at {dt}")
         except Exception as x:
             # Handle the error
-            await log.error(f"An error occurred in run(): {x}")
+            dt = datetime.now()
+            await log.error(f"An error occurred in run(): {x} at {dt}")
         finally:
             domains_list.clear()
 
-        await log.info("Done")
+            t = await db.shut_down()
+            if t:
+                # Close the logger and release resources
+                dt = datetime.now()
+                await log.info(f"Done at {dt}")
+                await log.shutdown()
+                break
+
+        dt = datetime.now()
+        await log.info(f"Loop sleep at {dt}")
         await asyncio.sleep(looptime)
+
 
 if __name__ == "__main__":
     asyncio.run(main())
-    # Close the logger and release resources
-    log.shutdown()
+
