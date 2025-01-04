@@ -22,13 +22,24 @@ class Monitor:
     # Function to scrape a single URL
     async def scrape_url(self, session, row):
         """Scrapes the given URL using aiohttp."""
-        v_status: bool
+        v_status: bool = False
+        code:int = 0
+
         try:
             url = row[Fields.url.value]
+
+            '''
+            # https://docs.aiohttp.org/en/stable/client_advanced.html
+            # use proxy when ready
+            proxy_auth = aiohttp.BasicAuth('user', 'pass')
+            async with session.get("http://python.org",
+                                   proxy="http://proxy.com",
+                                   proxy_auth=proxy_auth) as response:
+            '''
             async with session.get(url) as response:
                 # response.raise_for_status()  # Raise an exception for bad status codes
                 code = response.status
-                html = await response.text()
+                html = response.text()
                 txt = html.lower()
                 if code <= 299 and html is not None:
                     v_status = await self.validate(txt, row[Fields.kword.value],

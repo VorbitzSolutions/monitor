@@ -3,6 +3,7 @@ import logging
 import ssl
 from datetime import datetime
 
+from aiohttp.resolver import AsyncResolver
 import aiohttp
 from aiologger import Logger
 from aiologger.handlers.files import AsyncFileHandler
@@ -53,18 +54,22 @@ async def main():
                     await db.change_status(domains_list)
                     load_data = False
 
+            #resolver = AsyncResolver(nameservers=["8.8.8.8", "8.8.4.4"])
+            #async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=ssl_context, use_dns_cache=True,
+            #                                                                limit=100,resolver=resolver)) as session:
             async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=ssl_context)) as session:
                 tasks = [dm_monitor.scrape_url(session, row) for row in domains_list]
                 await asyncio.gather(*tasks)
+            await asyncio.sleep(0)
 
         except RuntimeError as r:
-            # Handle the error
+            # Handle the errorAsync
             dt = datetime.now()
-            await log.error(f"An error occurred in run(): {r} at {dt}")
+            await log.error(f"An runtime error occurred in run(): {r} at {dt}")
         except Exception as x:
             # Handle the error
             dt = datetime.now()
-            await log.error(f"An error occurred in run(): {x} at {dt}")
+            await log.error(f"An exception occurred in run(): {x} at {dt}")
         finally:
             domains_list.clear()
 

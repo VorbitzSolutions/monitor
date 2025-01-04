@@ -1,19 +1,10 @@
 import psycopg
 from datetime import datetime
 from dbfields import Fields
+from idb import IDb
 
-
-class DbAccess:
+class DbAccess(IDb):
     def __init__(self, log, db_name, db_user, appid, sendmsgid):
-        self.get_all_rows_sql = "SELECT * FROM domains"
-        self.fetch_row_sql = "SELECT * FROM domains WHERE domain_id = %s"
-        self.cheeck_new_or_updated = "SELECT 1 FROM domains WHERE status=1"
-        self.set_status = "UPDATE domains SET status = 0 WHERE domain_id = %s"
-        self.send_msg = "INSERT INTO messages (source_id,destanation_id, status, msg, created_ts, closed_ts) \
-        VALUES (%s,%s,true,%s,now(),now())"
-        self.check_shutdown = "select status from public.shutdown WHERE id=1;"
-        self.shutdown = "UPDATE public.shutdown SET status=1 WHERE id = 1;"
-
         self.log = log
         s = f"dbname={db_name} user={db_user}"
         self.db_conn = psycopg.connect(s)
@@ -31,12 +22,14 @@ class DbAccess:
         try:
             with self.db_conn.transaction():
                 with self.db_conn.cursor() as cur:
-                    cur.execute(self.check_shutdown)
+                    query = "select status from public.shutdown WHERE id=1;"
+                    cur.execute(query)
                     rows = cur.fetchall()
                     i = 0
                     for row in rows: i += row[0]
                     if i > 0:
-                        cur.execute(self.shutdown)
+                        query = "UPDATE public.shutdown SET status=1 WHERE id = 1;"
+                        cur.execute(query)
                         end_program = True
                     cur.execute("UPDATE public.shutdown SET status=0 WHERE id=1;")
         except RuntimeError as r:
@@ -55,8 +48,8 @@ class DbAccess:
         rows = []
         try:
             with self.db_conn.cursor() as cur:
-                sql = self.fetch_row_sql + f" {id}"
-                cur.execute(sql)
+                query = f"SELECT * FROM domains WHERE domain_id = {id}"
+                cur.execute(query)
                 rows = cur.fetchall()
                 if len(rows) == 0:
                     rows = None
@@ -76,7 +69,8 @@ class DbAccess:
         rows = []
         try:
             with self.db_conn.cursor() as cur:
-                cur.execute(self.get_all_rows_sql)
+                query = "SELECT * FROM domains"
+                cur.execute(query)
                 rows = cur.fetchall()
                 if len(rows) == 0:
                     rows = None
@@ -97,7 +91,8 @@ class DbAccess:
         try:
             with self.db_conn.transaction():
                 with self.db_conn.cursor() as cur:
-                    cur.execute(self.cheeck_new_or_updated)
+                    query = "SELECT 1 FROM domains WHERE status=1"
+                    cur.execute(query)
                     rows = cur.fetchall()
                 if len(rows) == 0:
                     invalidate = True
@@ -124,7 +119,8 @@ class DbAccess:
                         id = d[Fields.id.value]
                         status = d[Fields.status.value]
                         if status == 1:
-                            cur.execute(self.set_status, (id,))
+                            query = f"UPDATE domains SET status = 0 WHERE domain_id = {id}"
+                            cur.execute(query)
             ok = True
         except RuntimeError as r:
             # Handle the error

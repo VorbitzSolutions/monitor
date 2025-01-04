@@ -7,8 +7,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="e183d6af-2c9a-4a4f-885c-0628945c5ad4" name="Changes" comment="release 0.1">
+    <list default="true" id="e183d6af-2c9a-4a4f-885c-0628945c5ad4" name="Changes" comment="added sql create files">
+      <change afterPath="$PROJECT_DIR$/idb.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/async_db.py" beforeDir="false" afterPath="$PROJECT_DIR$/async_db.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -57,10 +59,16 @@
   },
   &quot;keyToStringList&quot;: {
     &quot;com.intellij.ide.scratch.ScratchImplUtil$2/New Scratch File&quot;: [
-      &quot;TEXT&quot;
+      &quot;TEXT&quot;,
+      &quot;PLAIN_TEXT&quot;
     ]
   }
 }</component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$" />
+    </key>
+  </component>
   <component name="RunManager">
     <configuration name="main" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="DomainNameMonitor" />
@@ -130,13 +138,22 @@
       <option name="project" value="LOCAL" />
       <updated>1735863132270</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="added sql create files">
+      <option name="closed" value="true" />
+      <created>1735863895628</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1735863895628</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Complete rewrite of application." />
     <MESSAGE value="Added date/time stamps to logging." />
     <MESSAGE value="release 0.1" />
-    <option name="LAST_COMMIT_MESSAGE" value="release 0.1" />
+    <MESSAGE value="added sql create files" />
+    <option name="LAST_COMMIT_MESSAGE" value="added sql create files" />
   </component>
 </project>
