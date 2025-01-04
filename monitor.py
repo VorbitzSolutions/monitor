@@ -26,8 +26,6 @@ class Monitor:
         code:int = 0
 
         try:
-            url = row[Fields.url.value]
-
             '''
             # https://docs.aiohttp.org/en/stable/client_advanced.html
             # use proxy when ready
@@ -36,6 +34,7 @@ class Monitor:
                                    proxy="http://proxy.com",
                                    proxy_auth=proxy_auth) as response:
             '''
+            url = row[Fields.url.value]
             async with session.get(url) as response:
                 # response.raise_for_status()  # Raise an exception for bad status codes
                 code = response.status

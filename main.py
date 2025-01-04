@@ -3,7 +3,7 @@ import logging
 import ssl
 from datetime import datetime
 
-from aiohttp.resolver import AsyncResolver
+#from aiohttp.resolver import AsyncResolver
 import aiohttp
 from aiologger import Logger
 from aiologger.handlers.files import AsyncFileHandler

@@ -3,6 +3,7 @@ from datetime import datetime
 from dbfields import Fields
 from idb import IDb
 
+
 class DbAccess(IDb):
     def __init__(self, log, db_name, db_user, appid, sendmsgid):
         self.log = log

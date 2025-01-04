@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 
+
 class IDb(ABC):
     @abstractmethod
     async def shut_down(self):
